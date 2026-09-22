@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"id": "one_stack",
+	"version": "${version}",
+	"name": "One Stack",
+	"description": "Server-wide challenge to gather one full stack of every obtainable item.",
+	"authors": [
+		"bkadlec"
+	],
+	"contact": {
+		"sources": "https://github.com/bkadlec/one-stack-fabric-mod"
+	},
+	"license": "GPL-3.0-or-later",
+	"environment": "server",
+	"entrypoints": {
+		"main": [
+			"com.onestack.OneStackMod"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
