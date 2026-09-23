@@ -3,6 +3,7 @@ package com.onestack.menu;
 import com.onestack.OneStackMod;
 import com.onestack.data.ItemListManager;
 import com.onestack.data.ProgressManager;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -22,13 +23,15 @@ import java.util.List;
 
 /**
  * Double-chest GUI using vanilla {@link MenuType#GENERIC_9x6} so no client mod is required.
- * Slots 0-44 show challenge items; slot 45 is previous (red concrete), slot 53 is next (green concrete).
+ * Slots 0-44 show challenge items. Bottom row: slot 45 is Previous (red concrete),
+ * slot 49 is gray concrete stacked to the 1-based page number, slot 53 is Next (green concrete).
  */
 public class StackListMenu extends AbstractContainerMenu {
 	public static final int ROWS = 6;
 	public static final int COLUMNS = 9;
 	public static final int PAGE_SIZE = 45; // first 5 rows
 	public static final int PREV_SLOT = 45;
+	public static final int PAGE_SLOT = 49;
 	public static final int NEXT_SLOT = 53;
 
 	private final SimpleContainer display;
@@ -103,13 +106,24 @@ public class StackListMenu extends AbstractContainerMenu {
 		}
 
 		if (page > 0) {
-			display.setItem(PREV_SLOT, new ItemStack(Items.CONCRETE.red()));
+			display.setItem(PREV_SLOT, namedButton(Items.CONCRETE.red(), "Previous"));
 		}
 		if (page < maxPage) {
-			display.setItem(NEXT_SLOT, new ItemStack(Items.CONCRETE.green()));
+			display.setItem(NEXT_SLOT, namedButton(Items.CONCRETE.green(), "Next"));
 		}
 
+		int pageNumber = page + 1;
+		ItemStack pageMarker = new ItemStack(Items.CONCRETE.gray());
+		pageMarker.setCount(Math.min(pageNumber, pageMarker.getMaxStackSize()));
+		display.setItem(PAGE_SLOT, pageMarker);
+
 		broadcastChanges();
+	}
+
+	private static ItemStack namedButton(Item item, String name) {
+		ItemStack stack = new ItemStack(item);
+		stack.set(DataComponents.CUSTOM_NAME, Component.literal(name));
+		return stack;
 	}
 
 	@Override

@@ -28,11 +28,9 @@ public final class StackCommands {
 	private static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(Commands.literal("stack")
 				.requires(source -> source.isPlayer())
-				.executes(context -> submitStack(context.getSource())));
-
-		dispatcher.register(Commands.literal("stacklist")
-				.requires(source -> source.isPlayer())
-				.executes(context -> openList(context.getSource())));
+				.executes(context -> submitStack(context.getSource()))
+				.then(Commands.literal("list")
+						.executes(context -> openList(context.getSource()))));
 	}
 
 	private static int submitStack(CommandSourceStack source) throws CommandSyntaxException {

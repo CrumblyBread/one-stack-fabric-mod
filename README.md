@@ -16,7 +16,7 @@ Install the mod jar in the server's `mods` folder. Clients do not need the mod.
 | Command | Description |
 |---|---|
 | `/stack` | If your main hand holds a full stack of a listed item, marks it complete for the whole server and removes that stack. |
-| `/stacklist` | Opens a double-chest GUI of every listed item. Incomplete = 1, completed = full stack. Red concrete = previous page, green concrete = next page (bottom row). |
+| `/stack list` | Opens a double-chest GUI of every listed item. Incomplete = 1, completed = full stack. Bottom row: red concrete named Previous, gray concrete stacked to the page number, green concrete named Next. |
 
 Items that are not in the list are rejected with `not on the list`.
 
