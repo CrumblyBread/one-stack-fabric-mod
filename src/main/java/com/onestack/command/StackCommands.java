@@ -2,6 +2,7 @@ package com.onestack.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.onestack.OneStackMod;
 import com.onestack.data.ItemListManager;
@@ -30,7 +31,9 @@ public final class StackCommands {
 				.requires(source -> source.isPlayer())
 				.executes(context -> submitStack(context.getSource()))
 				.then(Commands.literal("list")
-						.executes(context -> openList(context.getSource()))));
+						.executes(context -> openList(context.getSource(), 1))
+						.then(Commands.argument("page", IntegerArgumentType.integer(1))
+								.executes(context -> openList(context.getSource(), IntegerArgumentType.getInteger(context, "page"))))));
 	}
 
 	private static int submitStack(CommandSourceStack source) throws CommandSyntaxException {
@@ -78,13 +81,21 @@ public final class StackCommands {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	private static int openList(CommandSourceStack source) throws CommandSyntaxException {
+	private static int openList(CommandSourceStack source, int pageNumber) throws CommandSyntaxException {
 		ServerPlayer player = source.getPlayerOrException();
-		if (OneStackMod.getItemListManager() == null || OneStackMod.getProgressManager() == null) {
+		ItemListManager listManager = OneStackMod.getItemListManager();
+		if (listManager == null || OneStackMod.getProgressManager() == null) {
 			source.sendFailure(Component.literal("One Stack is not ready yet."));
 			return 0;
 		}
-		StackListMenu.open(player, 0);
+
+		int maxPage = Math.max(0, (listManager.getItems().size() - 1) / StackListMenu.PAGE_SIZE) + 1;
+		if (pageNumber > maxPage) {
+			source.sendFailure(Component.literal("Page " + pageNumber + " is out of range (1-" + maxPage + ")."));
+			return 0;
+		}
+
+		StackListMenu.open(player, pageNumber - 1);
 		return Command.SINGLE_SUCCESS;
 	}
 }
