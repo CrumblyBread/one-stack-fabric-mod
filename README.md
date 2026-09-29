@@ -27,7 +27,7 @@ Created on first server start under `config/one_stack/`:
 - **`items.json`** — JSON array of item IDs that count for the challenge. Edit freely (add/remove/reorder), then restart the server.
 - **`progress.json`** — server-wide completed item IDs.
 
-The default `items.json` is generated from the game registry: anything with max stack size greater than 1, minus a small denylist of survival-unobtainable items (bedrock, barriers, command blocks, spawn eggs, etc.). For other Minecraft versions, retarget the mod build and replace/regenerate that list.
+The default `items.json` is generated from the game registry: anything with max stack size greater than 1, minus a small denylist of survival-unobtainable items (bedrock, barriers, command blocks, spawn eggs, etc.). Order follows the creative inventory, so a wood set stays together and wool, carpets, concrete, and stained glass stay grouped by color. Items that are not in a creative category tab are appended alphabetically. Delete `items.json` and restart the server to regenerate it. For other Minecraft versions, retarget the mod build and replace/regenerate that list.
 
 ## Build
 

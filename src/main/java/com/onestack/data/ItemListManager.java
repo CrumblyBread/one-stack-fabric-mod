@@ -9,6 +9,8 @@ import com.onestack.OneStackMod;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -19,7 +21,9 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -32,10 +36,12 @@ import java.util.Set;
 public class ItemListManager {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
+	private final MinecraftServer server;
 	private final Path configFile;
 	private final List<Identifier> items = new ArrayList<>();
 
 	public ItemListManager(MinecraftServer server) {
+		this.server = server;
 		Path configDir = server.getServerDirectory().resolve("config").resolve(OneStackMod.MOD_ID);
 		this.configFile = configDir.resolve("items.json");
 	}
@@ -109,9 +115,22 @@ public class ItemListManager {
 		return contains(BuiltInRegistries.ITEM.getKey(item));
 	}
 
-	private static List<Identifier> buildDefaultList() {
+	private List<Identifier> buildDefaultList() {
+		Set<Identifier> eligible = collectEligibleItems();
+		try {
+			return orderLikeCreativeInventory(eligible);
+		} catch (RuntimeException e) {
+			OneStackMod.LOGGER.warn("Could not order the default item list like the creative inventory; using alphabetical order", e);
+			return sortAlphabetically(eligible);
+		}
+	}
+
+	/**
+	 * Stackable items that belong on the default challenge list.
+	 */
+	private static Set<Identifier> collectEligibleItems() {
 		Set<Identifier> denylist = defaultDenylist();
-		List<Identifier> result = new ArrayList<>();
+		Set<Identifier> eligible = new LinkedHashSet<>();
 
 		for (Item item : BuiltInRegistries.ITEM) {
 			Identifier id = BuiltInRegistries.ITEM.getKey(item);
@@ -133,11 +152,63 @@ public class ItemListManager {
 				continue;
 			}
 
-			result.add(id);
+			eligible.add(id);
 		}
 
-		result.sort((a, b) -> a.toString().compareToIgnoreCase(b.toString()));
-		return result;
+		return eligible;
+	}
+
+	/**
+	 * Creative-inventory order: each wood set stays together, each color family
+	 * (wool, carpet, concrete, stained glass, and so on) stays together, then
+	 * tools, food, and ingredients follow their tabs. Items that never appear
+	 * in a category tab are appended alphabetically.
+	 */
+	private List<Identifier> orderLikeCreativeInventory(Set<Identifier> eligible) {
+		ensureCreativeTabsBuilt();
+
+		List<Identifier> ordered = new ArrayList<>();
+		Set<Identifier> placed = new HashSet<>();
+		for (CreativeModeTab tab : CreativeModeTabs.allTabs()) {
+			if (tab.getType() != CreativeModeTab.Type.CATEGORY) {
+				continue;
+			}
+			for (ItemStack stack : tab.getSearchTabDisplayItems()) {
+				Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+				if (id != null && eligible.contains(id) && placed.add(id)) {
+					ordered.add(id);
+				}
+			}
+		}
+
+		List<Identifier> rest = new ArrayList<>();
+		for (Identifier id : eligible) {
+			if (!placed.contains(id)) {
+				rest.add(id);
+			}
+		}
+		if (!rest.isEmpty()) {
+			OneStackMod.LOGGER.info("Appended {} items that are not in a creative tab", rest.size());
+			ordered.addAll(sortAlphabetically(rest));
+		}
+		return ordered;
+	}
+
+	private void ensureCreativeTabsBuilt() {
+		if (!CreativeModeTabs.getDefaultTab().getDisplayItems().isEmpty()) {
+			return;
+		}
+		CreativeModeTabs.tryRebuildTabContents(
+				server.getWorldData().enabledFeatures(),
+				false,
+				server.registryAccess()
+		);
+	}
+
+	private static List<Identifier> sortAlphabetically(Collection<Identifier> ids) {
+		List<Identifier> sorted = new ArrayList<>(ids);
+		sorted.sort((a, b) -> a.toString().compareToIgnoreCase(b.toString()));
+		return sorted;
 	}
 
 	/**
