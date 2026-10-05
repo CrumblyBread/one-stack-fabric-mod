@@ -115,6 +115,43 @@ public class ItemListManager {
 		return contains(BuiltInRegistries.ITEM.getKey(item));
 	}
 
+	/**
+	 * Adds an item to the list and persists it to {@code items.json} immediately.
+	 * Takes effect right away for every online player; no restart required.
+	 *
+	 * @return {@code true} if the item was added, {@code false} if it was already on the list.
+	 */
+	public boolean addItem(Identifier id) {
+		if (items.contains(id)) {
+			return false;
+		}
+		items.add(id);
+		save();
+		return true;
+	}
+
+	/**
+	 * Removes an item from the list and persists the change to {@code items.json} immediately.
+	 * Takes effect right away for every online player; no restart required.
+	 *
+	 * @return {@code true} if the item was removed, {@code false} if it was not on the list.
+	 */
+	public boolean removeItem(Identifier id) {
+		if (!items.remove(id)) {
+			return false;
+		}
+		save();
+		return true;
+	}
+
+	/**
+	 * Reloads the list from {@code items.json} on disk, discarding in-memory changes
+	 * that were not saved. Lets admins hand-edit the file and pick it up live.
+	 */
+	public void reload() {
+		loadOrCreateDefault();
+	}
+
 	private List<Identifier> buildDefaultList() {
 		Set<Identifier> eligible = collectEligibleItems();
 		try {

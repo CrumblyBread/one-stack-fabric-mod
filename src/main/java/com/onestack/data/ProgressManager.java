@@ -93,6 +93,19 @@ public class ProgressManager {
 		return true;
 	}
 
+	/**
+	 * Clears completion status for an item, e.g. when an admin removes it from the list.
+	 *
+	 * @return {@code true} if the item had been completed, {@code false} otherwise.
+	 */
+	public boolean unmark(Identifier id) {
+		if (!completed.remove(id)) {
+			return false;
+		}
+		save();
+		return true;
+	}
+
 	public int completedCount() {
 		return completed.size();
 	}
