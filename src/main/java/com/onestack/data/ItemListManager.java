@@ -283,6 +283,10 @@ public class ItemListManager {
 		add(deny, "minecraft:petrified_oak_slab");
 		add(deny, "minecraft:knowledge_book");
 		add(deny, "minecraft:debug_stick");
+		add(deny, "minecraft:test_block");
+		add(deny, "minecraft:test_instance_block");
+		add(deny, "minecraft:written_book");
+		add(deny, "minecraft:dragon_egg");
 		return deny;
 	}
 
